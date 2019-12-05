@@ -11,6 +11,14 @@ data Instruction
          Bool
   | Input
   | Output Bool
+  | JumpTrue Bool
+             Bool
+  | JumpFalse Bool
+              Bool
+  | Less Bool
+         Bool
+  | Equal Bool
+          Bool
   | Stop
   deriving (Eq, Ord, Show)
 
@@ -25,6 +33,10 @@ parseInstruction number =
        02 -> Mult modeC modeB
        03 -> Input
        04 -> Output modeC
+       05 -> JumpTrue modeC modeB
+       06 -> JumpFalse modeC modeB
+       07 -> Less modeC modeB
+       08 -> Equal modeC modeB
        99 -> Stop
        _  -> error "Error"
 
@@ -45,7 +57,6 @@ step (State (mem, input, output)) pos
  =
   let op = mem ! pos
   in case parseInstruction op of
-       Stop -> State (mem, input, output)
        Add iA iB ->
          let a = getValue mem iA (pos + 1)
              b = getValue mem iB (pos + 2)
@@ -65,6 +76,41 @@ step (State (mem, input, output)) pos
        Output imm ->
          let c = getValue mem imm (pos + 1)
          in step (State (mem, input, (c : output))) (pos + 2)
+       JumpTrue iA iB ->
+         let a = getValue mem iA (pos + 1)
+             b = getValue mem iB (pos + 2)
+         in step
+              (State (mem, input, output))
+              (if (a /= 0)
+                 then b
+                 else pos + 3)
+       JumpFalse iA iB ->
+         let a = getValue mem iA (pos + 1)
+             b = getValue mem iB (pos + 2)
+         in step
+              (State (mem, input, output))
+              (if (a == 0)
+                 then b
+                 else pos + 3)
+       Less iA iB ->
+         let a = getValue mem iA (pos + 1)
+             b = getValue mem iB (pos + 2)
+             c = getValue mem True (pos + 3)
+             r =
+               if a < b
+                 then 1
+                 else 0
+         in step (State ((mem // [(c, r)]), input, output)) (pos + 4)
+       Equal iA iB ->
+         let a = getValue mem iA (pos + 1)
+             b = getValue mem iB (pos + 2)
+             c = getValue mem True (pos + 3)
+             r =
+               if a == b
+                 then 1
+                 else 0
+         in step (State ((mem // [(c, r)]), input, output)) (pos + 4)
+       Stop -> State (mem, input, output)
 
 run :: String -> [Int] -> State
 run str input =
@@ -82,4 +128,5 @@ input =
 -- pr (a, b) = run2 input a b == 19690720
 main = do
   putStrLn (show (run input [1]))
+  putStrLn (show (run input [5]))
     -- putStrLn (show (find pr [(x, y) | x <- [0 .. 99], y <- [0 .. 99]]))
