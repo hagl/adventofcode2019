@@ -220,3 +220,28 @@ main = do
         map last $
         groupBy (\[a, b, c] -> \[x, y, z] -> a == x && b == y) $
         sort $ runGame input []))
+
+
+printGrid :: Int -> Int -> (Int -> Int -> Char) -> String
+printGrid sizeX sizeY getColor =
+  unlines $ map (printLine) [0 .. sizeY]
+  where 
+    printLine :: Int -> String
+    printLine y =
+      map (\x -> getColor x y) [0 .. sizeX]
+
+
+
+getColor :: [[Integer]]  -> Int -> Int -> Char
+getColor list x y =
+  let c = find (\[a, b, c] -> (fromInteger a) == x && (fromInteger b) == y) list
+  in maybe ' ' (\[_, _, x] -> case x of 
+    0 -> ' '
+    1 -> '◾'
+    2 -> '#'
+    3 -> '-'
+    4 -> 'O'
+  ) c
+   
+
+-- putStrLn $ printGrid 41 23 $ getColor $ map last $ groupBy (\[a, b, c] -> \[x, y, z] -> a == x && b == y) $ sort $ runGame ('2' : ( tail input)) [ 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1 , -1, -1, -1, -1, 0, 0, 0]
