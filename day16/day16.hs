@@ -32,3 +32,27 @@ run inp count = foldr (\_ -> step) inp [1 .. count]
 
 main = do
   putStrLn $ show $ take 8 $ run input 100
+  putStrln $ run2 input
+
+{-
+  1 1 1 1 a
+  0 1 1 1 b
+  0 0 1 1 c
+  0 0 0 1 d
+
+d' = d
+c' = c + d = c + d'
+b' = b + c + d = b + c'
+a' = a + b + c + d = a + b'
+-}
+x = [6, 1, 5, 8]
+
+step2 :: [Int] -> [Int]
+step2 list = tail $ map (\y -> mod y 10) $ scanl (+) 0 list
+
+run2 :: [Int] -> String
+run2 list =
+  let start = foldl (\a -> \b -> 10 * a + b) 0 $ take 7 list
+      z = reverse $ drop start $ take ((length input) * 10000) $ repeatList list
+      r = foldr (\x -> step2) z [1 .. 100]
+  in foldr (++) "" $ map show $ take 8 $ reverse r
